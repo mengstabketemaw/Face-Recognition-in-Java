@@ -8,6 +8,7 @@ import com.dulcian.face.service.FaceService;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -23,17 +24,22 @@ class FaceController{
     }
 
     @PostMapping("/face/{id}")
-    public Integer faceRegistration(@RequestBody String base64Image, @PathVariable Integer id) throws IOException, TranslateException {
-        Image faceImage = faceService.getFaceImage(base64Image);
-        if(faceImage == null) //No face detected
-            return -2; //No face detected in the given image
+    public List<Integer> faceRegistration(@RequestBody String[] base64Images, @PathVariable Integer id) throws IOException, TranslateException {
+        List<Integer> result = new ArrayList<>();
+        for(String base64Image : base64Images){
+            Image faceImage = faceService.getFaceImage(base64Image);
+            if(faceImage == null) //No face detected
+                result.add(-1); //No face detected in the given image
 
-        float[] newFace = faceService.extractFeatures(faceImage);
-        byte[] imageBytes = Base64.getDecoder().decode(base64Image);
+            float[] newFace = faceService.extractFeatures(faceImage);
+            byte[] imageBytes = Base64.getDecoder().decode(base64Image);
 
-        Integer vectorId = faceService.saveImage(id, imageBytes);
-        faceService.saveVector(vectorId, newFace);
-        return vectorId; // Face is registered Successfully
+            Integer vectorId = faceService.saveImage(id, imageBytes);
+            faceService.saveVector(vectorId, newFace);
+            result.add(vectorId);
+        }
+
+        return result; // Face is registered Successfully
     }
 
     @PostMapping("/identify/{id}")
