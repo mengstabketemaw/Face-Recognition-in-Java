@@ -25,29 +25,12 @@ public class FaceService {
     private final ImageRepository imageRepository;
     private final Predictor<Image, float[]> FeatureExtractor;
     private final Predictor<Image, DetectedObjects> ObjectDetectionModel;
-    List<VectorModel> allFaces = null;
 
     public FaceService(VectorRepository vectorRepository, ImageRepository imageRepository, Predictor<Image, float[]> featureExtractor, Predictor<Image, DetectedObjects> objectDetectionModel) throws IOException, TranslateException {
         this.imageRepository = imageRepository;
         this.vectorRepository = vectorRepository;
         FeatureExtractor = featureExtractor;
         ObjectDetectionModel = objectDetectionModel;
-        allFaces = vectorRepository.findAllExcluding(-1);
-        Path a = Paths.get("C:\\Users\\Mengstab\\Downloads\\Compressed\\lfw_funneled\\Abdel_Nasser_Assidi\\brad3.jpeg");
-        Path b1 = Paths.get("C:\\Users\\Mengstab\\Downloads\\Compressed\\lfw_funneled\\Abdel_Nasser_Assidi\\leo2.jpeg");
-        Path b2 = Paths.get("C:\\Users\\Mengstab\\Downloads\\Compressed\\lfw_funneled\\Abdel_Nasser_Assidi\\Abdel_Nasser_Assidi_0002.jpg");
-        Image ai = ImageFactory.getInstance().fromFile(a);
-        Image bi1 = ImageFactory.getInstance().fromFile(b1);
-        Image bi2 = ImageFactory.getInstance().fromFile(b2);
-
-        float[] predicta = featureExtractor.predict(getCropFace(ai, objectDetectionModel.predict(ai)));
-        float[] predictb1 = featureExtractor.predict(getCropFace(bi1, objectDetectionModel.predict(bi1)));
-        float[] predictb2 = featureExtractor.predict(getCropFace(bi2, objectDetectionModel.predict(bi2)));
-        float b1a = calculSimilar(useWrapper(predicta), useWrapper(predictb1));
-        float b1b = calculSimilar(useWrapper(predictb2), useWrapper(predictb1));
-        float b1a2 = euclideanDistance(predicta, predictb1);
-        System.out.println(b1a);
-        System.out.println(b1a2);
     }
     public Integer findTopSimilarFace(float[] features, Integer exclude){
 
@@ -58,6 +41,7 @@ public class FaceService {
 
         int mostSimilarEmployee = -1;
         float maxSimilarityIndex = 0;
+        List<VectorModel> allFaces = vectorRepository.findAllExcluding(exclude);
         for(VectorModel vectorModel : allFaces){
             List<Float> employeeFace = convertByteArrayToFloatList(vectorModel.getVector());
             float similarityIndex = calculSimilar(newFace, employeeFace);
