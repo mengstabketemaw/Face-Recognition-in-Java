@@ -46,9 +46,8 @@ public class FaceService {
             List<Float> employeeFace = convertByteArrayToFloatList(vectorModel.getVector());
             float similarityIndex = calculSimilar(newFace, employeeFace);
 
-            if(similarityIndex < 0.75)
+            if(similarityIndex < 0.70)
                 continue; //
-
 
             if(similarityIndex > maxSimilarityIndex){
                 mostSimilarEmployee = vectorModel.getId();
@@ -103,7 +102,7 @@ public class FaceService {
         if (detectedObjects.items().isEmpty()) {
             return null;
         }
-        DetectedObjects.DetectedObject detectedObject = (DetectedObjects.DetectedObject) detectedObjects.topK(1).get(0);
+        DetectedObjects.DetectedObject detectedObject = (DetectedObjects.DetectedObject) detectedObjects.topK(50).get(0);
 
         // Get the bounding box of the detected object
         BoundingBox boundingBox = detectedObject.getBoundingBox();
@@ -116,16 +115,20 @@ public class FaceService {
         return img.getSubImage(x, y, width, height);
     }
     public float calculSimilar(List<Float> feature1, List<Float> feature2) {
-        float ret = 0.0f;
-        float mod1 = 0.0f;
-        float mod2 = 0.0f;
+        float dotProduct = 0.0f;
+        float magnitudeA = 0.0f;
+        float magnitudeB = 0.0f;
         int length = feature1.size();
         for (int i = 0; i < length; ++i) {
-            ret += feature1.get(i) * feature2.get(i);
-            mod1 += feature1.get(i) * feature1.get(i);
-            mod2 += feature2.get(i) * feature2.get(i);
+            dotProduct += feature1.get(i) * feature2.get(i);
+            magnitudeA += feature1.get(i) * feature1.get(i);
+            magnitudeB += feature2.get(i) * feature2.get(i);
         }
-        return (float) ((ret / Math.sqrt(mod1) / Math.sqrt(mod2) + 1) / 2.0f);
+
+        magnitudeA = (float)Math.sqrt(magnitudeA);
+        magnitudeB = (float)Math.sqrt(magnitudeB);
+
+        return (float) (dotProduct / (Math.sqrt(magnitudeA) * Math.sqrt(magnitudeB))) ;
     }
 
 

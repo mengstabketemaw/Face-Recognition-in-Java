@@ -42,7 +42,7 @@ public class ModelConfig {
         double confThresh = 0.85f;
         double nmsThresh = 0.45f;
         double[] variance = {0.1f, 0.2f};
-        int topK = 5;
+        int topK = 50;
         int[][] scales = {{16, 32}, {64, 128}, {256, 512}};
         int[] steps = {8, 16, 32};
         FaceDetectionTranslator translator =
