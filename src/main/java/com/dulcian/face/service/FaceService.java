@@ -14,7 +14,6 @@ import com.dulcian.face.model.VectorRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.*;
 import java.util.*;
 
@@ -25,9 +24,7 @@ public class FaceService {
     private final ImageRepository imageRepository;
     private final Predictor<Image, float[]> FeatureExtractor;
     private final Predictor<Image, DetectedObjects> ObjectDetectionModel;
-
     private final JdbcTemplate jdbcTemplate;
-    private double FACE_THRESHOLD = 0.67;
 
     public FaceService(VectorRepository vectorRepository, ImageRepository imageRepository, Predictor<Image, float[]> featureExtractor, Predictor<Image, DetectedObjects> objectDetectionModel, JdbcTemplate jdbcTemplate) throws IOException, TranslateException {
         this.imageRepository = imageRepository;
@@ -45,12 +42,14 @@ public class FaceService {
 
         int mostSimilarEmployee = -1;
         float maxSimilarityIndex = 0;
+        double faceThreshold = getFaceThreshold();
+
         List<VectorModel> allFaces = vectorRepository.findAllExcluding(exclude);
         for(VectorModel vectorModel : allFaces){
             List<Float> employeeFace = convertByteArrayToFloatList(vectorModel.getVector());
             float similarityIndex = calculSimilar(newFace, employeeFace);
 
-            if(similarityIndex < FACE_THRESHOLD)
+            if(similarityIndex < faceThreshold)
                 continue; //
 
             if(similarityIndex > maxSimilarityIndex){
@@ -183,9 +182,8 @@ public class FaceService {
         imageRepository.deleteById(id);
     }
 
-    @PostConstruct
-    public void setFACE_THRESHOLD(){
-        FACE_THRESHOLD = jdbcTemplate.queryForObject("SELECT IntValue FROM BiometricSettings WHERE Name = 'FACE_MATCHING_THRESHOLD_VALUE'", Double.class);
+    public double getFaceThreshold(){
+        return jdbcTemplate.queryForObject("SELECT IntValue FROM BiometricSettings WHERE Name = 'FACE_MATCHING_THRESHOLD_VALUE'", Double.class) / 100;
     }
 
     public static List<Float> useWrapper(float[] features){
