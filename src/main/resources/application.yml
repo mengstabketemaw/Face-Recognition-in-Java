@@ -33,4 +33,6 @@ jasypt:
   encryptor:
     password: http://192.168.0.245/authorization/oauth2/jwks
 server:
-  port: 8082
+  port: 8083
+  servlet:
+    context-path: /face-api
