@@ -10,6 +10,7 @@ public class ImageModel {
     Integer id;
     Integer employeeId;
     Instant createdDate = Instant.now();
+    @Convert(converter = ImageConverter.class)
     @Lob
     byte[] image;
 
