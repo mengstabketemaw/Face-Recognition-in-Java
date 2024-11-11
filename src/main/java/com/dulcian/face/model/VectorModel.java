@@ -11,6 +11,14 @@ public class VectorModel {
     @Lob
     byte[] vector;
 
+    public VectorModel() {
+    }
+
+    public VectorModel(Integer id, byte[] vector) {
+        this.id = id;
+        this.vector = vector;
+    }
+
     public Integer getId() {
         return id;
     }

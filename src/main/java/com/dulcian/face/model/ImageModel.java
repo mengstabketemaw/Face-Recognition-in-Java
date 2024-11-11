@@ -14,6 +14,14 @@ public class ImageModel {
     @Lob
     byte[] image;
 
+    public ImageModel() {
+    }
+
+    public ImageModel(Integer employeeId, byte[] image) {
+        this.employeeId = employeeId;
+        this.image = image;
+    }
+
     public Integer getId() {
         return id;
     }

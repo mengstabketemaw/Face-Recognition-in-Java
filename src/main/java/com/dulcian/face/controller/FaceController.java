@@ -1,15 +1,11 @@
 package com.dulcian.face.controller;
 
 
-import ai.djl.modality.cv.Image;
-import ai.djl.translate.TranslateException;
 import com.dulcian.face.model.ImageModel;
 import com.dulcian.face.service.FaceService;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 
@@ -24,41 +20,22 @@ class FaceController{
     }
 
     @PostMapping("/face/{id}")
-    public List<Integer> faceRegistration(@RequestBody String[] base64Images, @PathVariable Integer id) throws IOException, TranslateException {
+    public List<Integer> faceRegistration(@RequestBody String[] base64Images, @PathVariable Integer id) {
         List<Integer> result = new ArrayList<>();
-        for(String base64Image : base64Images){
-            Image faceImage = faceService.getFaceImage(base64Image);
-            if(faceImage == null) //No face detected
-                result.add(-1); //No face detected in the given image
-
-            float[] newFace = faceService.extractFeatures(faceImage);
-            byte[] imageBytes = Base64.getDecoder().decode(base64Image);
-
-            Integer vectorId = faceService.saveImage(id, imageBytes);
-            faceService.saveVector(vectorId, newFace);
+        for(String base64Face : base64Images){
+            Integer vectorId = faceService.saveEmployeeFace(id, base64Face);
             result.add(vectorId);
         }
-
         return result; // Face is registered Successfully
     }
 
     @PostMapping("/identify/{id}")
-    public HashMap<String,Object> faceIdentification(@PathVariable Integer id, @RequestBody String base64Image) throws TranslateException, IOException {
-        Image faceImage = faceService.getFaceImage(base64Image);
+    public HashMap<String,Object> faceIdentification(@PathVariable Integer id, @RequestBody String base64Image) {
         HashMap<String,Object> result = new HashMap<>(); result.put("vectorId", -2);
-        if(faceImage == null) //No face detected
-            return result; //No face detected in the given image
-
-        float[] newFace = faceService.extractFeatures(faceImage);
-
-        //Vectors to exclude
-        List<Integer> vectorsId = faceService.getVectorsByEmployeeId(id);
-
-        int vectorId = faceService.findTopSimilarFace(newFace, id);
+        int vectorId = faceService.findTopSimilarFace(base64Image, id);
         result.put("vectorId", vectorId);
         if(vectorId > -1) //Found a similar face, return the employee id
             result.put("employeeId", faceService.getEmployeeId(vectorId));
-
         return result;
     }
 
@@ -66,7 +43,6 @@ class FaceController{
     public List<ImageModel> getEmployeeFace(@PathVariable Integer id){
         return faceService.getEmployeeFace(id);
     }
-
     @DeleteMapping("/face/{id}")
     public void deleteEmployeeFace(@PathVariable Integer id){
         faceService.deleteEmployeeFace(id);

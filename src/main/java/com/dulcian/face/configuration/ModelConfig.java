@@ -1,3 +1,4 @@
+/*
 package com.dulcian.face.configuration;
 
 import ai.djl.MalformedModelException;
@@ -63,3 +64,4 @@ public class ModelConfig {
     }
 
 }
+*/

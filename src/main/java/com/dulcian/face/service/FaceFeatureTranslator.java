@@ -20,7 +20,7 @@ public class FaceFeatureTranslator implements Translator<Image, float[]> {
         NDArray array = input.toNDArray(ctx.getNDManager(), Image.Flag.COLOR);
         Pipeline pipeline = new Pipeline();
         pipeline
-                .add(new Resize(160,160))
+//                .add(new Resize(160,160))
                 .add(new ToTensor())
                 .add(
                         new Normalize(
@@ -38,8 +38,7 @@ public class FaceFeatureTranslator implements Translator<Image, float[]> {
         for (int i = 0; i < numOutputs; i++) {
             result.add(list.singletonOrThrow().get(i));
         }
-        float[][] embeddings =
-                result.stream().map(NDArray::toFloatArray).toArray(float[][]::new);
+        float[][] embeddings = result.stream().map(NDArray::toFloatArray).toArray(float[][]::new);
         float[] feature = new float[embeddings.length];
         for (int i = 0; i < embeddings.length; i++) {
             feature[i] = embeddings[i][0];
