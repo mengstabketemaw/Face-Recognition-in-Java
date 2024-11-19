@@ -3,6 +3,7 @@ package com.dulcian.face;
 import ai.djl.translate.TranslateException;
 import com.dulcian.face.service.ExternalFaceExtraction;
 import com.dulcian.face.service.FaceService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +16,7 @@ import java.util.Base64;
 import java.util.logging.Logger;
 
 @SpringBootTest
+@Disabled
 class FaceApplicationTests {
 	Logger logger = Logger.getLogger("Face Test");
 
@@ -34,20 +36,26 @@ class FaceApplicationTests {
 		int right = 0;
 		BigInteger totalReq = BigInteger.ZERO;
 
-		File folder = new File("C:\\Users\\Mengstab\\Downloads\\Compressed\\Livestock similarity\\1");
+		File folder = new File("C:\\Users\\Mengstab\\Downloads\\Compressed\\Livestock similarity\\Similar on 222");
 		for (File person : folder.listFiles()) {
 			if (!person.isDirectory()) continue;
 			File[] images = person.listFiles();
 			if(images != null && images.length > 1){
-				float[] floats1 = new float[1];  // extractVector(images[0]);
-				float[] floats2 = new float[1]; //extractVector(images[1]);
+				double[] floats1 = extractVector(images[0]);
+				double[] floats2 = extractVector(images[1]);
 				double similarityIndex = calculateSimilarityIndex(floats1, floats2);
-				System.out.println(similarityIndex + " = " + images[0].getName());
+
+				if(similarityIndex > 0.7761)
+					System.out.println(similarityIndex + " -- " + person.getName());
 			}
 		}
 	}
 
-	public double calculateSimilarityIndex(float[] feature1, float[] feature2) {
+	private double[] extractVector(File image) throws IOException {
+		return faceExtraction.extractEmbedding(encodeImageToBase64(image));
+	}
+
+	public double calculateSimilarityIndex(double[] feature1, double[] feature2) {
 		double dotProduct = 0.0;
 		double magnitudeA = 0.0;
 		double magnitudeB = 0.0;

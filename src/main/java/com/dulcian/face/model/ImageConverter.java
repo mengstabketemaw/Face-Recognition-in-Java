@@ -1,6 +1,6 @@
 package com.dulcian.face.model;
 
-import com.dulcian.face.service.EncryptionUtils;
+import com.dulcian.face.utils.EncryptionUtils;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
