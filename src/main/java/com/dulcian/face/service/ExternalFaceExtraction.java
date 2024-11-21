@@ -45,7 +45,7 @@ public class ExternalFaceExtraction {
 
             HashMap<String, Object> payload = new HashMap<>();
             payload.put("payload", "data:image/" + format + ";base64," + face64);
-            JsonNode response = restTemplate.postForEntity("http://192.168.0.222:5050/represent", new HttpEntity<>(payload, new HttpHeaders()), JsonNode.class).getBody();
+            JsonNode response = restTemplate.postForEntity("http://localhost:5050/represent", new HttpEntity<>(payload, new HttpHeaders()), JsonNode.class).getBody();
             assert response != null;
             JsonNode embedding = response.get("embedding");
             return mapper.convertValue(embedding, double[].class);
