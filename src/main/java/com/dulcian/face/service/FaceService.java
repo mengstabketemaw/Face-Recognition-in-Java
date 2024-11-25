@@ -1,16 +1,15 @@
 package com.dulcian.face.service;
 
 import com.dulcian.face.dto.FaceSimilaritySearch;
-import com.dulcian.face.model.ImageModel;
-import com.dulcian.face.model.ImageRepository;
-import com.dulcian.face.model.VectorModel;
-import com.dulcian.face.model.VectorRepository;
+import com.dulcian.face.dto.VectorDto;
+import com.dulcian.face.model.*;
 import com.dulcian.face.utils.ConversionUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,44 +19,37 @@ public class FaceService {
     private final ImageRepository imageRepository;
     private final ExternalFaceExtraction faceExtraction;
     private final JdbcTemplate jdbcTemplate;
+    private final VectorMemoryRepository vectorMemoryRepository;
 
-    public FaceService(VectorRepository vectorRepository, ImageRepository imageRepository, ExternalFaceExtraction faceExtraction, JdbcTemplate jdbcTemplate) {
+    public FaceService(VectorRepository vectorRepository, ImageRepository imageRepository, ExternalFaceExtraction faceExtraction, JdbcTemplate jdbcTemplate, VectorMemoryRepository vectorMemoryRepository) {
         this.imageRepository = imageRepository;
         this.vectorRepository = vectorRepository;
         this.faceExtraction = faceExtraction;
         this.jdbcTemplate = jdbcTemplate;
+        this.vectorMemoryRepository = vectorMemoryRepository;
     }
     public List<FaceSimilaritySearch> findTopSimilarFace(String targetFace64, Integer exclude){
 
         double[] targetFaceVector = faceExtraction.extractEmbedding(targetFace64);
         double faceThreshold = getFaceThreshold();
 
-        HashMap<Integer, Double> calculationResult = new HashMap<>();
-        Set<Integer> candidateVectors = new HashSet<>();
+        List<VectorDto> allVectors = vectorMemoryRepository.getAllExcluding(exclude);
 
+        return allVectors.parallelStream()
+                .map(vectorModel -> {
+                    double similarityIndex = getCosineMetrics(targetFaceVector, vectorModel.getVector());
 
-        List<VectorModel> allFaces = vectorRepository.findAllExcluding(exclude);
+                    if (similarityIndex < faceThreshold) {
+                        return null; // Filter out non-matching results
+                    }
 
-        for(VectorModel vectorModel : allFaces){
-            double[] candidateFaceVector = ConversionUtils.toDouble(vectorModel.getVector());
-            double similarityIndex = getCosineMetrics(targetFaceVector, candidateFaceVector);
-
-            if(similarityIndex < faceThreshold)
-                continue; //
-
-            calculationResult.put(vectorModel.getId(), similarityIndex);
-            candidateVectors.add(vectorModel.getId());
-
-        }
-
-        List<ImageModel> candidateImages = imageRepository.findAllById(candidateVectors);
-
-        return candidateImages.stream()
-                .map(i -> new FaceSimilaritySearch(
-                        i.getId(),
-                        i.getEmployeeId(),
-                        calculationResult.get(i.getId())
-                ))
+                    return new FaceSimilaritySearch(
+                            vectorModel.getId(),
+                            vectorModel.getEmployeeId(),
+                            similarityIndex
+                    );
+                })
+                .filter(Objects::nonNull) // Remove null entries
                 .collect(Collectors.toList());
     }
 
@@ -67,6 +59,7 @@ public class FaceService {
         byte[] vectorByte = ConversionUtils.toByte(vector);
         ImageModel savedImageModel = imageRepository.save(new ImageModel(employeeId, imageRaw));
         vectorRepository.save(new VectorModel(savedImageModel.getId(), vectorByte));
+        vectorMemoryRepository.add(savedImageModel.getId(), employeeId, vector);
         return savedImageModel;
     }
     public byte[] getImage(Integer id){
@@ -90,20 +83,14 @@ public class FaceService {
 
         return dotProduct / (magnitudeA * magnitudeB) ;
     }
-    public Integer getEmployeeId(Integer vectorId) {
-        Optional<ImageModel> byId = imageRepository.findById(vectorId);
-        if(byId.isPresent()){
-            ImageModel imageModel = byId.get();
-            return imageModel.getEmployeeId();
-        }
-        return -1;
-    }
+
     public List<ImageModel> getEmployeeFace(Integer id) {
         return imageRepository.findByEmployeeId(id);
     }
     public void deleteEmployeeFace(Integer id) {
         vectorRepository.deleteById(id);
         imageRepository.deleteById(id);
+        vectorMemoryRepository.deleteById(id);
     }
     public double getFaceThreshold(){
         return jdbcTemplate.queryForObject("SELECT IntValue FROM BiometricSettings WHERE Name = 'FACE_MATCHING_THRESHOLD_VALUE'", Double.class) / 100;
