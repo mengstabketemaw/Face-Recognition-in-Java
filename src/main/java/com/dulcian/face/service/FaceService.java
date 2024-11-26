@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -50,6 +51,7 @@ public class FaceService {
                     );
                 })
                 .filter(Objects::nonNull) // Remove null entries
+                .sorted(Comparator.comparingDouble(FaceSimilaritySearch::getThreshold).reversed())
                 .collect(Collectors.toList());
     }
 
