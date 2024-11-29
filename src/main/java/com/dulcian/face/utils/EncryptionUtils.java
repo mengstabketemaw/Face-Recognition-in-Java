@@ -13,23 +13,11 @@ public class EncryptionUtils {
     private static final byte[] JPEG_MAGIC_NUMBER = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF};
     private static final SecretKeySpec secretKey = new SecretKeySpec(STATIC_KEY.getBytes(), ALGORITHM);
     private static final IvParameterSpec iv = new IvParameterSpec(STATIC_IV.getBytes());
-    private static final Cipher encryptCipher;
-    private static final Cipher decryptCipher;
-
-    static {
-        try {
-            encryptCipher = Cipher.getInstance(CIPHER_ALGORITHM);
-            encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, iv);
-
-            decryptCipher = Cipher.getInstance(CIPHER_ALGORITHM);
-            decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
-        } catch (Exception e) {
-            throw new RuntimeException("Error initializing encryption/decryption ciphers", e);
-        }
-    }
 
     public static byte[] encrypt(byte[] plainObject){
         try {
+            Cipher encryptCipher = Cipher.getInstance(CIPHER_ALGORITHM);
+            encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, iv);
             return encryptCipher.doFinal(plainObject);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -38,6 +26,8 @@ public class EncryptionUtils {
 
     public static byte[] decrypt(byte[] encryptedObject) {
         try {
+            Cipher decryptCipher = Cipher.getInstance(CIPHER_ALGORITHM);
+            decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
             return decryptCipher.doFinal(encryptedObject);
         } catch (Exception e) {
             throw new RuntimeException(e);
