@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-class FaceController{
+public class FaceController{
 
     private final FaceService faceService;
     private final PendingService pendingService;
@@ -77,7 +77,7 @@ class FaceController{
     }
     @DeleteMapping("/pending/{id}")
     public void deletePendingFaceImage(@PathVariable Integer id){
-        pendingService.delete(id);;
+        pendingService.delete(id);
     }
 
     @ExceptionHandler

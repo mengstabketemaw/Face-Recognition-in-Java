@@ -7,10 +7,7 @@ import com.dulcian.face.utils.ConversionUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Base64;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,6 +49,7 @@ public class FaceService {
                 })
                 .filter(Objects::nonNull) // Remove null entries
                 .sorted(Comparator.comparingDouble(FaceSimilaritySearch::getThreshold).reversed())
+                .limit(7)
                 .collect(Collectors.toList());
     }
 
@@ -59,6 +57,13 @@ public class FaceService {
         double[] vector = faceExtraction.extractEmbedding(face64);
         byte[] imageRaw = Base64.getDecoder().decode(face64);
         byte[] vectorByte = ConversionUtils.toByte(vector);
+
+        for (ImageModel savedImage : imageRepository.findByEmployeeId(employeeId)) {
+            if(Arrays.equals(savedImage.getImage(), imageRaw)){ // stop users from adding the same image
+                return savedImage;
+            }
+        }
+
         ImageModel savedImageModel = imageRepository.save(new ImageModel(employeeId, imageRaw));
         vectorRepository.save(new VectorModel(savedImageModel.getId(), vectorByte));
         vectorMemoryRepository.add(savedImageModel.getId(), employeeId, vector);

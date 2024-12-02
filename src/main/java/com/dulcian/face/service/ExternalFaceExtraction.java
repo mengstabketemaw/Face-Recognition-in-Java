@@ -1,36 +1,23 @@
 package com.dulcian.face.service;
 
-import com.dulcian.face.utils.ConversionUtils;
-import com.dulcian.face.utils.EncryptionUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 
 @Service
 public class ExternalFaceExtraction {
-    Logger logger = LoggerFactory.getLogger("ExternalFaceExtraction");
 
     RestTemplate restTemplate  = new RestTemplate();
     ObjectMapper mapper = new ObjectMapper();
 
-    private final JdbcTemplate jdbcTemplate;
-
-    public ExternalFaceExtraction(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public ExternalFaceExtraction() {
 
     }
 
@@ -63,38 +50,5 @@ public class ExternalFaceExtraction {
         }
 
     }
-
-    @PostConstruct
-    public void FaceVectorUpdateScript() {
-        logger.info("Face vector update script is starting");
-
-        List<Object[]> updateVectorModelParams = new ArrayList<>();
-        List<Object[]> updateImageModelParams = new ArrayList<>();
-
-        jdbcTemplate.query("SELECT id, image FROM ImageModel WHERE createdDate IS NULL", rs -> {
-            int id = rs.getInt("id");
-            byte[] faceRaw = EncryptionUtils.decrypt(rs.getBytes("image"));
-
-            try {
-                String face64 = Base64.getEncoder().encodeToString(faceRaw);
-                double[] vector = extractEmbedding(face64);
-
-                updateVectorModelParams.add(new Object[]{ConversionUtils.toByte(vector), id});
-                updateImageModelParams.add(new Object[]{id});
-            }catch (Exception e){
-                logger.error("Face vector updating image( {} )", id);
-                e.printStackTrace();
-            }
-        });
-
-        logger.info("Face vector updating rows = " + updateVectorModelParams.size());
-
-        // Execute batch updates
-        jdbcTemplate.batchUpdate("UPDATE VectorModel SET vector = ? WHERE id = ?", updateVectorModelParams);
-        jdbcTemplate.batchUpdate("UPDATE ImageModel SET createdDate = GETDATE() WHERE id = ?", updateImageModelParams);
-
-        logger.info("Face vector update script has ended");
-    }
-
 
 }
