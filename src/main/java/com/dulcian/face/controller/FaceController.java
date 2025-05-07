@@ -2,6 +2,7 @@ package com.dulcian.face.controller;
 
 
 import com.dulcian.face.dto.FaceSimilaritySearch;
+import com.dulcian.face.dto.InvalidFaceMap;
 import com.dulcian.face.model.ImageModel;
 import com.dulcian.face.service.FaceService;
 import com.dulcian.face.service.PendingService;
@@ -63,9 +64,13 @@ public class FaceController{
                 .contentType(EncryptionUtils.getType(image))
                 .body(image);
     }
-    @PostMapping(value = "/pending/{id}", consumes = "text/plain")
-    public HashMap<String, Object>  savePendingFaceImages(@PathVariable Integer id, @RequestParam List<Integer> candidates, @RequestBody String base64Images){
-        return pendingService.saveEmployeeFaceToPending(base64Images, candidates, id);
+    @PostMapping(value = "/pending/{id}")
+    public HashMap<String, Object>  savePendingFaceImages(@PathVariable Integer id, @RequestBody List<InvalidFaceMap> invalidFaceMaps){
+        HashMap<String, Object> result = new HashMap<>();
+        for (InvalidFaceMap invalidFaceMap : invalidFaceMaps) {
+            result = pendingService.saveEmployeeFaceToPending(invalidFaceMap, id);
+        }
+        return result;
     }
     @GetMapping("/pending/{id}")
     public List<HashMap<String, Object>> getEmployeePendingImages(@PathVariable Integer id){

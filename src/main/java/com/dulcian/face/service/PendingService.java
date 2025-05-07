@@ -1,5 +1,7 @@
 package com.dulcian.face.service;
 
+import com.dulcian.face.dto.FaceSimilaritySearch;
+import com.dulcian.face.dto.InvalidFaceMap;
 import com.dulcian.face.model.EmployeeFacePending;
 import com.dulcian.face.model.ImageModel;
 import com.dulcian.face.model.ImageRepository;
@@ -22,12 +24,13 @@ public class PendingService {
         this.faceService = faceService;
     }
 
-    public HashMap<String, Object> saveEmployeeFaceToPending(String targetFace64, List<Integer> candidatesId, int employeeId) {
-        byte[] targetRaw = Base64.getDecoder().decode(targetFace64);
+    public HashMap<String, Object> saveEmployeeFaceToPending(InvalidFaceMap invalidFaceMap, int employeeId) {
+
+        byte[] targetRaw = Base64.getDecoder().decode(invalidFaceMap.face64);
         EmployeeFacePending target = new EmployeeFacePending(employeeId, targetRaw);
         target = pendingRepository.save(target);
         int parentId = target.getId();
-        List<ImageModel> candidates = imageRepository.findAllById(candidatesId);
+        List<ImageModel> candidates = imageRepository.findAllById(invalidFaceMap.getSimilarFaceList().stream().map(FaceSimilaritySearch::getVectorId).collect(Collectors.toList()));
         List<EmployeeFacePending> candidateImages = candidates.stream()
                 .map(candidate -> new EmployeeFacePending(parentId, candidate.getEmployeeId(), candidate.getImage()))
                 .collect(Collectors.toList());
