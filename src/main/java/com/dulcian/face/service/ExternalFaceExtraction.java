@@ -21,7 +21,7 @@ public class ExternalFaceExtraction {
 
     }
 
-    public double[] extractEmbedding(String face64){
+    synchronized public double[] extractEmbedding(String face64){
         try{
 
             String format = null;

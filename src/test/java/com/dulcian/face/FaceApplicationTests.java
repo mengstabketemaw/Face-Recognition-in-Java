@@ -69,7 +69,7 @@ class FaceApplicationTests {
 	void testFaceEx(){
 
 		long count = IntStream.rangeClosed(0, 100)
-//				.parallel()
+				.parallel()
 				.map(x -> {
 					try {
 						return faceExtraction.extractEmbedding(getSample()).length;
@@ -173,7 +173,7 @@ class FaceApplicationTests {
 
 	public static String getSample(){
 		try {
-			return new String(Files.readAllBytes(Paths.get("C:\\Users\\Mengstab\\Downloads\\Compressed\\face\\target\\txtt")));
+			return new String(Files.readAllBytes(Paths.get("C:\\Users\\Mengstab\\Downloads\\Compressed\\face\\src\\test\\java\\com\\dulcian\\face\\sample")));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

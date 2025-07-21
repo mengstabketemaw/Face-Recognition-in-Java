@@ -1,23 +1,9 @@
+database:
+  url: 192.168.0.221:1433
+  username: itapsa
+  password: Andr0m3d4
+
 spring:
-  datasource:
-    url: jdbc:sqlserver://DEVSRV01:1433;databaseName=iTap;encrypt=true;trustServerCertificate=true;
-    username: ENC(MI9CbIUJSlLjESMCKvnhTAEnHe7imB5UY97960zlpZYQO1wBenl/a6feSytM3J4s)
-    password: ENC(QWwYFkGPLJFZ4kX20D17/EmRsdnD9GjW+iNpkr0rql3HXAiF0jqeBD1XNY+LMQVs)
-    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-#  ai:
-#    vectorstore:
-#      milvus:
-#        client:
-#          host: "localhost"
-#          port: 19530
-#          username: "minioadmin"
-#          password: "minioadmin"
-#        databaseName: "default"
-#        collectionName: "vector_store"
-#        embeddingDimension: 384
-#        indexType: IVF_FLAT
-#        metricType: COSINE
-#        initialize-schema: true
   application:
     name: Face
   jpa:

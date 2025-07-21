@@ -4,6 +4,10 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.http.MediaType;
+
+import java.security.GeneralSecurityException;
+import java.util.Base64;
+
 public class EncryptionUtils {
     private static final String ALGORITHM = "AES";
     private static final String CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
@@ -32,6 +36,21 @@ public class EncryptionUtils {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static String encrypt(String strToEncrypt) throws GeneralSecurityException {
+        Cipher encryptCipher = Cipher.getInstance(CIPHER_ALGORITHM);
+        encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey, iv);
+        byte[] encrypted = encryptCipher.doFinal(strToEncrypt.getBytes());
+        return Base64.getEncoder().encodeToString(encrypted);
+    }
+
+    public static String decrypt(String strToDecrypt) throws GeneralSecurityException {
+        Cipher decryptCipher = Cipher.getInstance(CIPHER_ALGORITHM);
+        decryptCipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
+        byte[] decoded = Base64.getDecoder().decode(strToDecrypt);
+        byte[] decrypted = decryptCipher.doFinal(decoded);
+        return new String(decrypted);
     }
 
     public static MediaType getType(byte[] imageData){
