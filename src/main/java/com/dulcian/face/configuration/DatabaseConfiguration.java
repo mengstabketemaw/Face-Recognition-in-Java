@@ -15,7 +15,7 @@ import java.nio.file.Files;
 import java.util.Properties;
 
 @Configuration
-public class DbConfigurations {
+public class DatabaseConfiguration {
 
     @Bean
     DataSource dataSource(Environment environment){
@@ -30,6 +30,9 @@ public class DbConfigurations {
         int cpuCores = Runtime.getRuntime().availableProcessors();
         dataSource.setMaximumPoolSize(4 * cpuCores);           // Set max pool size to number of CPU cores
         dataSource.setMinimumIdle(cpuCores); // Minimum idle connections
+
+        dataSource.setConnectionTimeout(60000);
+        dataSource.setInitializationFailTimeout(1800000);
         return dataSource;
     }
 
